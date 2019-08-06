@@ -4,6 +4,7 @@
 #include "ros.h"
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Int16.h"
+#include "std_msgs/Empty.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/UInt16MultiArray.h"
 
@@ -25,6 +26,11 @@ ros::Publisher *odom_pub;
 bool publish_odom = false;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
+
+ros::Subscriber<std_msgs::Empty> *relay1_sub;
+ros::Subscriber<std_msgs::Empty> *relay2_sub;
+ros::Subscriber<std_msgs::Empty> *relay3_sub;
+ros::Subscriber<std_msgs::Empty> *relay4_sub;
 
 DiffController *dc;
 
@@ -82,11 +88,35 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 #endif
 }
 
+void relay1Callback()
+{
+	hSens1.pin1.toggle();
+}
+
+void relay2Callback()
+{
+	hSens1.pin2.toggle();
+}
+
+void relay3Callback()
+{
+	hSens1.pin3.toggle();
+}
+
+void relay4Callback()
+{
+	hSens1.pin4.toggle();
+}
+
 void initROS()
 {
     battery_pub = new ros::Publisher("/battery", &battery);
 	odom_pub = new ros::Publisher("/odom", &odom);
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
+
+	relay1_sub = new ros::Subscriber<std_msgs::Empty>("/relay1", &relay1Callback);
+	relay2_sub = new ros::Subscriber<std_msgs::Empty>("/relay2", &relay1Callback);
+
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
 		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo1/angle", &ServoWrapper::angleCallback, &servo1);
@@ -116,6 +146,10 @@ void initROS()
 
     nh.advertise(*battery_pub);
 	nh.advertise(*odom_pub);
+	nh.subscribe(*relay1_sub);
+	nh.subscribe(*relay2_sub);
+	nh.subscribe(*relay3_sub);
+	nh.subscribe(*relay4_sub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
@@ -206,6 +240,7 @@ void LEDLoop()
     {
 		if(!nh.connected())
 			LED.toggle();
+		
 		else
 			LED.write(true);
 
@@ -228,6 +263,10 @@ void hMain()
 	initROS();
 
 	LED.setOut();
+	hSens1.pin1.setOut();
+	hSens1.pin2.setOut();
+	hSens1.pin3.setOut();
+	hSens1.pin4.setOut();
 	sys.taskCreate(&LEDLoop);
 
 	sys.taskCreate(&batteryLoop);

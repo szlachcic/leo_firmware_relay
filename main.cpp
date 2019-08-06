@@ -4,6 +4,7 @@
 #include "ros.h"
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Int16.h"
+#include "std_msgs/Bool.h"
 #include "std_msgs/Empty.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/UInt16MultiArray.h"
@@ -27,10 +28,10 @@ bool publish_odom = false;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
-ros::Subscriber<std_msgs::Empty> *relay1_sub;
-ros::Subscriber<std_msgs::Empty> *relay2_sub;
-ros::Subscriber<std_msgs::Empty> *relay3_sub;
-ros::Subscriber<std_msgs::Empty> *relay4_sub;
+ros::Subscriber<std_msgs::Bool> *relay1_sub;
+ros::Subscriber<std_msgs::Bool> *relay2_sub;
+ros::Subscriber<std_msgs::Bool> *relay3_sub;
+ros::Subscriber<std_msgs::Bool> *relay4_sub;
 
 DiffController *dc;
 
@@ -88,24 +89,44 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 #endif
 }
 
-void relay1Callback()
+void relay1Callback(const std_msgs::Bool& i)
 {
-	hSens1.pin1.toggle();
+	if (i.data==true) hSens1.pin1.write(1);
+	else  hSens1.pin1.write(0);;
+	//hSens1.pin1.toggle();
+#ifdef DEBUG
+	Serial.printf("[relay1Callback] relay status: %d\r\n", i.data);
+#endif
 }
 
-void relay2Callback()
+void relay2Callback(const std_msgs::Bool& i)
 {
-	hSens1.pin2.toggle();
+	if (i.data==true) hSens1.pin2.write(1);
+	else  hSens1.pin2.write(0);;
+	//hSens1.pin2.toggle();
+#ifdef DEBUG
+	Serial.printf("[relay2Callback] relay status: %d\r\n", i.data);
+#endif
 }
 
-void relay3Callback()
+void relay3Callback(const std_msgs::Bool& i)
 {
-	hSens1.pin3.toggle();
+	if (i.data==true) hSens1.pin3.write(1);
+	else  hSens1.pin3.write(0);;
+	//hSens1.pin3.toggle();
+#ifdef DEBUG
+	Serial.printf("[relay3Callback] relay status: %d\r\n", i.data);
+#endif
 }
 
-void relay4Callback()
+void relay4Callback(const std_msgs::Bool& i)
 {
-	hSens1.pin4.toggle();
+	if (i.data==true) hSens1.pin4.write(1);
+	else  hSens1.pin4.write(0);;
+	//hSens1.pin4.toggle();
+#ifdef DEBUG
+	Serial.printf("[relay4Callback] relay status: %d\r\n", i.data);
+#endif
 }
 
 void initROS()
@@ -114,8 +135,10 @@ void initROS()
 	odom_pub = new ros::Publisher("/odom", &odom);
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
 
-	relay1_sub = new ros::Subscriber<std_msgs::Empty>("/relay1", &relay1Callback);
-	relay2_sub = new ros::Subscriber<std_msgs::Empty>("/relay2", &relay1Callback);
+	relay1_sub = new ros::Subscriber<std_msgs::Bool>("/relay1", &relay1Callback);
+	relay2_sub = new ros::Subscriber<std_msgs::Bool>("/relay2", &relay2Callback);
+	relay3_sub = new ros::Subscriber<std_msgs::Bool>("/relay3", &relay3Callback);
+	relay4_sub = new ros::Subscriber<std_msgs::Bool>("/relay4", &relay4Callback);
 
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
